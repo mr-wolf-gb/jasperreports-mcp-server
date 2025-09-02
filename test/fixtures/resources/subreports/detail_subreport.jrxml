@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" 
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" 
+              name="detail_subreport" 
+              pageWidth="595" 
+              pageHeight="842" 
+              columnWidth="555" 
+              leftMargin="20" 
+              rightMargin="20" 
+              topMargin="20" 
+              bottomMargin="20">
+  
+  <parameter name="SUBREPORT_TITLE" class="java.lang.String" isForPrompting="false">
+    <defaultValueExpression><![CDATA["Detail Subreport"]]></defaultValueExpression>
+  </parameter>
+  
+  <parameter name="PARENT_ID" class="java.lang.Integer" isForPrompting="false"/>
+  
+  <queryString>
+    <![CDATA[SELECT 'Detail Item 1' as item_name, 100 as item_value
+             UNION ALL
+             SELECT 'Detail Item 2' as item_name, 200 as item_value
+             UNION ALL
+             SELECT 'Detail Item 3' as item_name, 150 as item_value]]>
+  </queryString>
+  
+  <field name="item_name" class="java.lang.String"/>
+  <field name="item_value" class="java.lang.Integer"/>
+  
+  <title>
+    <band height="30">
+      <textField>
+        <reportElement x="0" y="0" width="555" height="20"/>
+        <textElement textAlignment="Center">
+          <font size="14" isBold="true"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$P{SUBREPORT_TITLE}]]></textFieldExpression>
+      </textField>
+    </band>
+  </title>
+  
+  <columnHeader>
+    <band height="20">
+      <staticText>
+        <reportElement x="0" y="0" width="300" height="20"/>
+        <textElement>
+          <font isBold="true"/>
+        </textElement>
+        <text><![CDATA[Item Name]]></text>
+      </staticText>
+      <staticText>
+        <reportElement x="300" y="0" width="255" height="20"/>
+        <textElement textAlignment="Right">
+          <font isBold="true"/>
+        </textElement>
+        <text><![CDATA[Item Value]]></text>
+      </staticText>
+    </band>
+  </columnHeader>
+  
+  <detail>
+    <band height="20">
+      <textField>
+        <reportElement x="0" y="0" width="300" height="20"/>
+        <textElement/>
+        <textFieldExpression><![CDATA[$F{item_name}]]></textFieldExpression>
+      </textField>
+      <textField pattern="#,##0">
+        <reportElement x="300" y="0" width="255" height="20"/>
+        <textElement textAlignment="Right"/>
+        <textFieldExpression><![CDATA[$F{item_value}]]></textFieldExpression>
+      </textField>
+    </band>
+  </detail>
+  
+</jasperReport>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<folder exportedWithPermissions="true">
+    <parent>/</parent>
+    <name>datasources</name>
+    <label>Data Sources</label>
+    <description>Data Sources used by reports</description>
+    <creationDate>2024-10-29T07:32:56.000+01:00</creationDate>
+    <updateDate>2023-04-26T11:24:15.000+01:00</updateDate>
+    <permission>
+        <permissionMask>32</permissionMask>
+        <recipient recipientType="role">ROLE_ANONYMOUS</recipient>
+    </permission>
+    <permission>
+        <permissionMask>32</permissionMask>
+        <recipient recipientType="role">ROLE_USER</recipient>
+    </permission>
+</folder>

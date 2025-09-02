@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "jasperreports-server": {
+      "command": "npx",
+      "args": ["jasperreports-mcp-server@latest"],
+      "env": {
+        "JASPER_URL": "https://reports.company.com/jasperserver",
+        "JASPER_AUTH_TYPE": "basic",
+        "JASPER_USERNAME": "service_account",
+        "JASPER_PASSWORD": "secure_password",
+        "JASPER_ORGANIZATION": "organization1",
+        "JASPER_TIMEOUT": "300000",
+        "JASPER_SSL_VERIFY": "true",
+        "JASPER_DEBUG_MODE": "false",
+        "TEST_SERVER_ENABLED": "false",
+        "NODE_ENV": "production",
+        "LOG_LEVEL": "info"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "jasper_authenticate",
+        "jasper_test_connection",
+        "jasper_list_resources",
+        "jasper_get_resource"
+      ]
+    }
+  }
+}

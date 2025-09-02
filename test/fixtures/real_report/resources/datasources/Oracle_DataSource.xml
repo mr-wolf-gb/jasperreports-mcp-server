@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jdbcDataSource exportedWithPermissions="true">
+    <folder>/datasources</folder>
+    <name>Oracle_DataSource</name>
+    <version>1</version>
+    <label>Oracle_DataSource</label>
+    <description>Oracle Datasource connected with user : intervention</description>
+    <creationDate>2024-10-29T10:17:54.000+01:00</creationDate>
+    <updateDate>2024-10-29T12:40:35.000+01:00</updateDate>
+    <driver>oracle.jdbc.OracleDriver</driver>
+    <connectionUrl>jdbc:oracle:thin:@172.20.10.199:1521:D703</connectionUrl>
+    <connectionUser>intervention</connectionUser>
+    <connectionPassword>ENC&lt;4A52534956000000108F366A0F26BE056C73D8683DF80EAB428ED3861C76A2AE830982C97F53B0B0F3&gt;</connectionPassword>
+    <timezone></timezone>
+</jdbcDataSource>

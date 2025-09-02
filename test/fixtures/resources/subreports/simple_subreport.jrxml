@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" 
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" 
+              name="simple_subreport" 
+              pageWidth="555" 
+              pageHeight="802" 
+              columnWidth="555" 
+              leftMargin="0" 
+              rightMargin="0" 
+              topMargin="0" 
+              bottomMargin="0" 
+              uuid="subreport-uuid">
+    
+    <parameter name="SubreportTitle" class="java.lang.String" isForPrompting="false">
+        <defaultValueExpression><![CDATA["Subreport Section"]]></defaultValueExpression>
+    </parameter>
+    
+    <title>
+        <band height="40" splitType="Stretch">
+            <textField>
+                <reportElement x="0" y="0" width="555" height="20" uuid="subreport-title-uuid"/>
+                <textElement>
+                    <font size="14" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{SubreportTitle}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="20" width="555" height="20" uuid="subreport-content-uuid"/>
+                <textElement>
+                    <font size="10"/>
+                </textElement>
+                <text><![CDATA[This is content from a subreport used for testing subreport functionality.]]></text>
+            </staticText>
+        </band>
+    </title>
+    
+</jasperReport>

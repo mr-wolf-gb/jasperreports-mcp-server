@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" 
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" 
+              name="complex_report" 
+              pageWidth="595" 
+              pageHeight="842" 
+              columnWidth="555" 
+              leftMargin="20" 
+              rightMargin="20" 
+              topMargin="20" 
+              bottomMargin="20" 
+              uuid="complex-report-uuid">
+    
+    <property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+    <property name="com.jaspersoft.studio.data.defaultdataadapter" value="Sample DB"/>
+    
+    <style name="Table_TH" mode="Opaque" backcolor="#E3F0FC">
+        <box>
+            <pen lineWidth="0.5" lineColor="#000000"/>
+        </box>
+    </style>
+    
+    <style name="Table_TD" mode="Opaque" backcolor="#FFFFFF">
+        <box>
+            <pen lineWidth="0.5" lineColor="#000000"/>
+        </box>
+    </style>
+    
+    <parameter name="StartDate" class="java.util.Date" isForPrompting="true">
+        <defaultValueExpression><![CDATA[new java.util.Date()]]></defaultValueExpression>
+    </parameter>
+    
+    <parameter name="EndDate" class="java.util.Date" isForPrompting="true">
+        <defaultValueExpression><![CDATA[new java.util.Date()]]></defaultValueExpression>
+    </parameter>
+    
+    <parameter name="Department" class="java.lang.String" isForPrompting="true">
+        <defaultValueExpression><![CDATA["All Departments"]]></defaultValueExpression>
+    </parameter>
+    
+    <queryString>
+        <![CDATA[SELECT 
+            'Sample Employee 1' as employee_name,
+            'Engineering' as department,
+            50000 as salary,
+            '2023-01-15' as hire_date
+        UNION ALL
+        SELECT 
+            'Sample Employee 2' as employee_name,
+            'Marketing' as department,
+            45000 as salary,
+            '2023-02-20' as hire_date
+        UNION ALL
+        SELECT 
+            'Sample Employee 3' as employee_name,
+            'Engineering' as department,
+            55000 as salary,
+            '2023-03-10' as hire_date]]>
+    </queryString>
+    
+    <field name="employee_name" class="java.lang.String"/>
+    <field name="department" class="java.lang.String"/>
+    <field name="salary" class="java.lang.Integer"/>
+    <field name="hire_date" class="java.lang.String"/>
+    
+    <variable name="TotalSalary" class="java.lang.Integer" calculation="Sum">
+        <variableExpression><![CDATA[$F{salary}]]></variableExpression>
+    </variable>
+    
+    <variable name="EmployeeCount" class="java.lang.Integer" calculation="Count">
+        <variableExpression><![CDATA[$F{employee_name}]]></variableExpression>
+    </variable>
+    
+    <title>
+        <band height="120" splitType="Stretch">
+            <staticText>
+                <reportElement x="0" y="0" width="555" height="30" uuid="complex-title-uuid"/>
+                <textElement textAlignment="Center">
+                    <font size="20" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Employee Report]]></text>
+            </staticText>
+            <textField pattern="yyyy-MM-dd">
+                <reportElement x="0" y="40" width="200" height="20" uuid="start-date-uuid"/>
+                <textElement>
+                    <font size="10"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Start Date: " + $P{StartDate}]]></textFieldExpression>
+            </textField>
+            <textField pattern="yyyy-MM-dd">
+                <reportElement x="0" y="60" width="200" height="20" uuid="end-date-uuid"/>
+                <textElement>
+                    <font size="10"/>
+                </textElement>
+                <textFieldExpression><![CDATA["End Date: " + $P{EndDate}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="0" y="80" width="200" height="20" uuid="dept-uuid"/>
+                <textElement>
+                    <font size="10"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Department: " + $P{Department}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+    
+    <columnHeader>
+        <band height="30" splitType="Stretch">
+            <staticText>
+                <reportElement style="Table_TH" x="0" y="0" width="150" height="30" uuid="name-header-uuid"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Employee Name]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="Table_TH" x="150" y="0" width="100" height="30" uuid="dept-header-uuid"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Department]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="Table_TH" x="250" y="0" width="100" height="30" uuid="salary-header-uuid"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Salary]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="Table_TH" x="350" y="0" width="100" height="30" uuid="hire-header-uuid"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Hire Date]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+    
+    <detail>
+        <band height="25" splitType="Stretch">
+            <textField>
+                <reportElement style="Table_TD" x="0" y="0" width="150" height="25" uuid="name-detail-uuid"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{employee_name}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement style="Table_TD" x="150" y="0" width="100" height="25" uuid="dept-detail-uuid"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{department}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0">
+                <reportElement style="Table_TD" x="250" y="0" width="100" height="25" uuid="salary-detail-uuid"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{salary}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement style="Table_TD" x="350" y="0" width="100" height="25" uuid="hire-detail-uuid"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{hire_date}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+    
+    <summary>
+        <band height="60" splitType="Stretch">
+            <staticText>
+                <reportElement x="0" y="10" width="100" height="20" uuid="summary-label-uuid"/>
+                <textElement>
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Summary:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="100" y="10" width="200" height="20" uuid="count-summary-uuid"/>
+                <textElement/>
+                <textFieldExpression><![CDATA["Total Employees: " + $V{EmployeeCount}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0">
+                <reportElement x="100" y="30" width="200" height="20" uuid="salary-summary-uuid"/>
+                <textElement/>
+                <textFieldExpression><![CDATA["Total Salary: $" + $V{TotalSalary}]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
+    
+</jasperReport>

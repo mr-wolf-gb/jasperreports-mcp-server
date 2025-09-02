@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" 
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" 
+              name="parameterized_report" 
+              pageWidth="595" 
+              pageHeight="842" 
+              columnWidth="555" 
+              leftMargin="20" 
+              rightMargin="20" 
+              topMargin="20" 
+              bottomMargin="20" 
+              uuid="param-report-uuid">
+    
+    <property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+    
+    <parameter name="ReportTitle" class="java.lang.String" isForPrompting="true">
+        <defaultValueExpression><![CDATA["Default Report Title"]]></defaultValueExpression>
+    </parameter>
+    
+    <parameter name="UserName" class="java.lang.String" isForPrompting="true">
+        <defaultValueExpression><![CDATA["Test User"]]></defaultValueExpression>
+    </parameter>
+    
+    <parameter name="ReportDate" class="java.util.Date" isForPrompting="true">
+        <defaultValueExpression><![CDATA[new java.util.Date()]]></defaultValueExpression>
+    </parameter>
+    
+    <parameter name="ShowDetails" class="java.lang.Boolean" isForPrompting="true">
+        <defaultValueExpression><![CDATA[Boolean.TRUE]]></defaultValueExpression>
+    </parameter>
+    
+    <title>
+        <band height="100" splitType="Stretch">
+            <textField>
+                <reportElement x="0" y="0" width="555" height="30" uuid="title-field-uuid"/>
+                <textElement textAlignment="Center">
+                    <font size="20" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{ReportTitle}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="0" y="40" width="555" height="20" uuid="user-field-uuid"/>
+                <textElement textAlignment="Center">
+                    <font size="12"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Generated for: " + $P{UserName}]]></textFieldExpression>
+            </textField>
+            <textField pattern="yyyy-MM-dd HH:mm:ss">
+                <reportElement x="0" y="70" width="555" height="20" uuid="date-field-uuid"/>
+                <textElement textAlignment="Center">
+                    <font size="10"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Report Date: " + $P{ReportDate}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+    
+    <detail>
+        <band height="60" splitType="Stretch">
+            <staticText>
+                <reportElement x="0" y="0" width="555" height="20" uuid="content-static-uuid"/>
+                <textElement>
+                    <font size="10"/>
+                </textElement>
+                <text><![CDATA[This report demonstrates parameter usage in JasperReports.]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="0" y="30" width="555" height="20" uuid="details-field-uuid" isRemoveLineWhenBlank="true">
+                    <printWhenExpression><![CDATA[$P{ShowDetails}]]></printWhenExpression>
+                </reportElement>
+                <textElement>
+                    <font size="10"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Additional details are shown because ShowDetails parameter is true."]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+    
+</jasperReport>

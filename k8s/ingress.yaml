@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jasperreports-mcp-server
+  namespace: jasperreports-mcp
+  labels:
+    app.kubernetes.io/name: jasperreports-mcp-server
+    app.kubernetes.io/component: ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - jasperreports-mcp.your-domain.com
+    secretName: jasperreports-mcp-tls
+  rules:
+  - host: jasperreports-mcp.your-domain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: jasperreports-mcp-server
+            port:
+              number: 80

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+build/
+coverage/
+*.min.js
+*.bundle.js
+package-lock.json
+yarn.lock
+.git/
+.DS_Store

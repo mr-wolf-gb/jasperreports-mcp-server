@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jasperreports-mcp-config
+  namespace: jasperreports-mcp
+  labels:
+    app.kubernetes.io/name: jasperreports-mcp-server
+    app.kubernetes.io/component: config
+data:
+  # Non-sensitive configuration
+  JASPER_AUTH_TYPE: "basic"
+  JASPER_TIMEOUT: "300000"
+  JASPER_SSL_VERIFY: "true"
+  JASPER_DEBUG_MODE: "false"
+  TEST_SERVER_ENABLED: "false"
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+  
+  # MCP Server configuration
+  mcp-config.json: |
+    {
+      "mcpServers": {
+        "jasperreports-server": {
+          "command": "node",
+          "args": ["/app/src/index.js"],
+          "env": {
+            "JASPER_URL": "$(JASPER_URL)",
+            "JASPER_AUTH_TYPE": "$(JASPER_AUTH_TYPE)",
+            "JASPER_USERNAME": "$(JASPER_USERNAME)",
+            "JASPER_PASSWORD": "$(JASPER_PASSWORD)",
+            "JASPER_ORGANIZATION": "$(JASPER_ORGANIZATION)",
+            "JASPER_TIMEOUT": "$(JASPER_TIMEOUT)",
+            "JASPER_SSL_VERIFY": "$(JASPER_SSL_VERIFY)",
+            "JASPER_DEBUG_MODE": "$(JASPER_DEBUG_MODE)",
+            "NODE_ENV": "$(NODE_ENV)",
+            "LOG_LEVEL": "$(LOG_LEVEL)"
+          },
+          "disabled": false,
+          "autoApprove": [
+            "jasper_authenticate",
+            "jasper_test_connection",
+            "jasper_list_resources",
+            "jasper_get_resource"
+          ]
+        }
+      }
+    }

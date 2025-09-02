@@ -1,0 +1,10 @@
+{
+  "label": "Test Database Connection",
+  "description": "Test datasource for unit and integration testing",
+  "driver": "org.h2.Driver",
+  "connectionUrl": "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
+  "connectionUser": "sa",
+  "connectionPassword": "",
+  "timezone": "",
+  "validationQuery": "SELECT 1"
+}

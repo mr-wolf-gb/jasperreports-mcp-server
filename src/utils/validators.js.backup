@@ -1,0 +1,1151 @@
+/**
+ * Input validation functions using JSON schema for JasperReports MCP Server
+ * Provides comprehensive validation for all request parameters and data structures
+ */
+
+import { FieldValidationError, ValidationError, ErrorMapper } from '../models/errors.js';
+
+/**
+ * JSON Schema definitions for validation
+ */
+const schemas = {
+  // Authentication schemas
+  authentication: {
+    type: 'object',
+    required: ['username', 'password'],
+    properties: {
+      authType: { type: 'string', enum: ['basic', 'login', 'argument'] },
+      username: { type: 'string', minLength: 1, maxLength: 100 },
+      password: { type: 'string', minLength: 1 },
+      organization: { type: 'string', maxLength: 100 }
+    },
+    additionalProperties: false
+  },
+
+  connectionTest: {
+    type: 'object',
+    properties: {
+      includeServerInfo: { type: 'boolean' },
+      timeout: { type: 'number', minimum: 1000, maximum: 300000 }
+    },
+    additionalProperties: false
+  },
+
+  // Resource management schemas
+  resourceUpload: {
+    type: 'object',
+    required: ['resourcePath', 'label'],
+    properties: {
+      resourcePath: { 
+        type: 'string', 
+        pattern: '^/[a-zA-Z0-9_/\\-\\.]+$',
+        minLength: 2,
+        maxLength: 500
+      },
+      label: { type: 'string', minLength: 1, maxLength: 200 },
+      description: { type: 'string', maxLength: 1000 },
+      resourceType: { 
+        type: 'string', 
+        enum: ['reportUnit', 'folder', 'dataSource', 'inputControl', 'file'] 
+      },
+      jrxmlContent: { type: 'string' },
+      dataSourceUri: { type: 'string', pattern: '^/[a-zA-Z0-9_/\\-\\.]+$' },
+      localResources: {
+        type: 'array',
+        items: {
+          type: 'object',
+          required: ['name', 'content'],
+          properties: {
+            name: { type: 'string', minLength: 1, maxLength: 100 },
+            type: { type: 'string', enum: ['img', 'jrxml', 'jar', 'prop', 'jrtx'] },
+            content: { type: 'string' },
+            contentType: { type: 'string' }
+          }
+        }
+      },
+      overwrite: { type: 'boolean' },
+      createFolders: { type: 'boolean' }
+    },
+    additionalProperties: false
+  },
+
+  resourceList: {
+    type: 'object',
+    properties: {
+      folderUri: { type: 'string', pattern: '^/[a-zA-Z0-9_/\\-\\.]*$' },
+      resourceType: { 
+        type: 'string', 
+        enum: ['reportUnit', 'folder', 'dataSource', 'inputControl', 'file', 'domain'] 
+      },
+      recursive: { type: 'boolean' },
+      limit: { type: 'number', minimum: 1, maximum: 1000 },
+      offset: { type: 'number', minimum: 0 },
+      sortBy: { type: 'string', enum: ['label', 'uri', 'type', 'creationDate', 'updateDate'] },
+      sortOrder: { type: 'string', enum: ['asc', 'desc'] },
+      searchQuery: { type: 'string', maxLength: 200 }
+    },
+    additionalProperties: false
+  },
+
+  resourceGet: {
+    type: 'object',
+    required: ['resourceUri'],
+    properties: {
+      resourceUri: { 
+        type: 'string', 
+        pattern: '^/[a-zA-Z0-9_/\\-\\.]*$'$',
+        minLength: 2,
+        maxLength: 500
+      },
+      includeContent: { type: 'boolean' },
+      includeMetadata: { type: 'boolean' }
+    },
+    additionalProperties: false
+  },
+
+  resourceUpdate: {
+    type: 'object',
+    required: ['resourceUri'],
+    properties: {
+      resourceUri: { 
+        type: 'string', 
+        pattern: '^/[a-zA-Z0-9_/\\-\\.]+$',
+        minLength: 2,
+        maxLength: 500
+      },
+      label: { type: 'string', minLength: 1, maxLength: 200 },
+      description: { type: 'string', maxLength: 1000 },
+      jrxmlContent: { type: 'string' },
+      overwrite: { type: 'boolean' }
+    },
+    additionalProperties: false
+  },
+
+  resourceDelete: {
+    type: 'object',
+    required: ['resourceUri'],
+    properties: {
+      resourceUri: { 
+        type: 'string', 
+        pattern: '^/[a-zA-Z0-9_/\\-\\.]+$',
+        minLength: 2,
+        maxLength: 500
+      },
+      force: { type: 'boolean' }
+    },
+    additionalProperties: false
+  },
+
+  // Report execution schemas
+  reportExecution: {
+    type: 'object',
+    required: ['reportUri'],
+    properties: {
+      reportUri: { 
+        type: 'string', 
+        pattern: '^/[a-zA-Z0-9_/\\-\\.]+$',
+        minLength: 2,
+        maxLength: 500
+      },
+      outputFormat: { 
+        type: 'string', 
+        enum: ['pdf', 'html', 'xlsx', 'xls', 'csv', 'rtf', 'docx', 'odt', 'ods', 'xml'] 
+      },
+      parameters: { type: 'object' },
+      pages: { 
+        type: 'string', 
+        pattern: '^(\\d+(-\\d+)?(,\\d+(-\\d+)?)*)?$'
+      },
+      async: { type: 'boolean' },
+      locale: { type: 'string', pattern: '^[a-z]{2}(_[A-Z]{2})?$' },
+      timezone: { type: 'string' },
+      attachmentsPrefix: { type: 'string', maxLength: 100 },
+      baseUrl: { type: 'string', format: 'uri' }
+    },
+    additionalProperties: false
+  },
+
+  executionStatus: {
+    type: 'object',
+    required: ['executionId'],
+    properties: {
+      executionId: { 
+        type: 'string', 
+        pattern: '^[a-zA-Z0-9\\-_]+$',
+        minLength: 1,
+        maxLength: 100
+      },
+      includeDetails: { type: 'boolean' }
+    },
+    additionalProperties: false
+  },
+
+  executionResult: {
+    type: 'object',
+    required: ['executionId'],
+    properties: {
+      executionId: { 
+        type: 'string', 
+        pattern: '^[a-zA-Z0-9\\-_]+$',
+        minLength: 1,
+        maxLength: 100
+      },
+      exportId: { type: 'string' },
+      attachmentName: { type: 'string', maxLength: 200 }
+    },
+    additionalProperties: false
+  },
+
+  executionCancel: {
+    type: 'object',
+    required: ['executionId'],
+    properties: {
+      executionId: { 
+        type: 'string', 
+        pattern: '^[a-zA-Z0-9\\-_]+$',
+        minLength: 1,
+        maxLength: 100
+      },
+      force: { type: 'boolean' }
+    },
+    additionalProperties: false
+  },
+
+  // Input control schemas
+  inputControls: {
+    type: 'object',
+    required: ['reportUri'],
+    properties: {
+      reportUri: { 
+        type: 'string', 
+        pattern: '^/[a-zA-Z0-9_/\\-\\.]+$',
+        minLength: 2,
+        maxLength: 500
+      },
+      includeStructure: { type: 'boolean' },
+      includeValues: { type: 'boolean' }
+    },
+    additionalProperties: false
+  },
+
+  inputControlValues: {
+    type: 'object',
+    required: ['reportUri', 'controlId'],
+    properties: {
+      reportUri: { 
+        type: 'string', 
+        pattern: '^/[a-zA-Z0-9_/\\-\\.]+$',
+        minLength: 2,
+        maxLength: 500
+      },
+      controlId: { type: 'string', minLength: 1, maxLength: 100 },
+      values: { type: 'object' },
+      freshData: { type: 'boolean' }
+    },
+    additionalProperties: false
+  },
+
+  inputControlValidation: {
+    type: 'object',
+    required: ['reportUri'],
+    properties: {
+      reportUri: { 
+        type: 'string', 
+        pattern: '^/[a-zA-Z0-9_/\\-\\.]+$',
+        minLength: 2,
+        maxLength: 500
+      },
+      parameters: { type: 'object' },
+      validateAll: { type: 'boolean' }
+    },
+    additionalProperties: false
+  },
+
+  // Job management schemas
+  jobCreation: {
+    type: 'object',
+    required: ['label', 'reportUri', 'schedule'],
+    properties: {
+      label: { type: 'string', minLength: 1, maxLength: 200 },
+      description: { type: 'string', maxLength: 1000 },
+      reportUri: { 
+        type: 'string', 
+        pattern: '^/[a-zA-Z0-9_/\\-\\.]+$',
+        minLength: 2,
+        maxLength: 500
+      },
+      schedule: {
+        type: 'object',
+        required: ['type'],
+        properties: {
+          type: { type: 'string', enum: ['simple', 'calendar', 'cron'] },
+          startDate: { type: 'string', format: 'date-time' },
+          endDate: { type: 'string', format: 'date-time' },
+          recurrenceInterval: { type: 'number', minimum: 1 },
+          recurrenceIntervalUnit: { 
+            type: 'string', 
+            enum: ['MINUTE', 'HOUR', 'DAY', 'WEEK', 'MONTH'] 
+          },
+          cronExpression: { type: 'string' },
+          calendarTrigger: { type: 'object' }
+        }
+      },
+      outputFormats: {
+        type: 'array',
+        items: { 
+          type: 'string', 
+          enum: ['pdf', 'html', 'xlsx', 'xls', 'csv', 'rtf', 'docx', 'odt', 'ods', 'xml'] 
+        },
+        minItems: 1
+      },
+      parameters: { type: 'object' },
+      recipients: {
+        type: 'array',
+        items: { type: 'string', format: 'email' }
+      },
+      mailNotification: { type: 'object' },
+      repositoryDestination: { type: 'string' }
+    },
+    additionalProperties: false
+  },
+
+  jobList: {
+    type: 'object',
+    properties: {
+      limit: { type: 'number', minimum: 1, maximum: 1000 },
+      offset: { type: 'number', minimum: 0 },
+      sortBy: { type: 'string', enum: ['label', 'owner', 'state', 'nextFireTime'] },
+      sortOrder: { type: 'string', enum: ['asc', 'desc'] },
+      searchQuery: { type: 'string', maxLength: 200 },
+      owner: { type: 'string', maxLength: 100 }
+    },
+    additionalProperties: false
+  },
+
+  jobUpdate: {
+    type: 'object',
+    required: ['jobId'],
+    properties: {
+      jobId: { type: 'string', minLength: 1, maxLength: 100 },
+      label: { type: 'string', minLength: 1, maxLength: 200 },
+      description: { type: 'string', maxLength: 1000 },
+      schedule: { type: 'object' },
+      outputFormats: {
+        type: 'array',
+        items: { 
+          type: 'string', 
+          enum: ['pdf', 'html', 'xlsx', 'xls', 'csv', 'rtf', 'docx', 'odt', 'ods', 'xml'] 
+        }
+      },
+      parameters: { type: 'object' },
+      recipients: {
+        type: 'array',
+        items: { type: 'string', format: 'email' }
+      }
+    },
+    additionalProperties: false
+  },
+
+  jobDelete: {
+    type: 'object',
+    required: ['jobId'],
+    properties: {
+      jobId: { type: 'string', minLength: 1, maxLength: 100 },
+      force: { type: 'boolean' }
+    },
+    additionalProperties: false
+  },
+
+  jobExecute: {
+    type: 'object',
+    required: ['jobId'],
+    properties: {
+      jobId: { type: 'string', minLength: 1, maxLength: 100 },
+      parameters: { type: 'object' }
+    },
+    additionalProperties: false
+  },
+
+  // User management schemas
+  userCreate: {
+    type: 'object',
+    required: ['username', 'password', 'fullName'],
+    properties: {
+      username: { 
+        type: 'string', 
+        pattern: '^[a-zA-Z0-9_\\-\\.]+$',
+        minLength: 1,
+        maxLength: 100
+      },
+      password: { type: 'string', minLength: 6, maxLength: 100 },
+      fullName: { type: 'string', minLength: 1, maxLength: 200 },
+      emailAddress: { type: 'string', format: 'email', maxLength: 200 },
+      enabled: { type: 'boolean' },
+      externallyDefined: { type: 'boolean' },
+      roles: {
+        type: 'array',
+        items: { type: 'string', minLength: 1, maxLength: 100 }
+      }
+    },
+    additionalProperties: false
+  },
+
+  userList: {
+    type: 'object',
+    properties: {
+      limit: { type: 'number', minimum: 1, maximum: 1000 },
+      offset: { type: 'number', minimum: 0 },
+      searchQuery: { type: 'string', maxLength: 200 },
+      includeRoles: { type: 'boolean' }
+    },
+    additionalProperties: false
+  },
+
+  userUpdate: {
+    type: 'object',
+    required: ['username'],
+    properties: {
+      username: { 
+        type: 'string', 
+        pattern: '^[a-zA-Z0-9_\\-\\.]+$',
+        minLength: 1,
+        maxLength: 100
+      },
+      fullName: { type: 'string', minLength: 1, maxLength: 200 },
+      emailAddress: { type: 'string', format: 'email', maxLength: 200 },
+      enabled: { type: 'boolean' },
+      roles: {
+        type: 'array',
+        items: { type: 'string', minLength: 1, maxLength: 100 }
+      }
+    },
+    additionalProperties: false
+  },
+
+  // Domain management schemas
+  domainGet: {
+    type: 'object',
+    required: ['domainUri'],
+    properties: {
+      domainUri: { 
+        type: 'string', 
+        pattern: '^/[a-zA-Z0-9_/\\-\\.]+$',
+        minLength: 2,
+        maxLength: 500
+      },
+      includeMetadata: { type: 'boolean' },
+      includeSchema: { type: 'boolean' },
+      includePermissions: { type: 'boolean' }
+    },
+    additionalProperties: false
+  },
+
+  domainList: {
+    type: 'object',
+    properties: {
+      folderUri: { 
+        type: 'string', 
+        pattern: '^/[a-zA-Z0-9_/\\-\\.]*$',
+        maxLength: 500
+      },
+      recursive: { type: 'boolean' },
+      limit: { type: 'number', minimum: 1, maximum: 1000 },
+      offset: { type: 'number', minimum: 0 },
+      sortBy: { type: 'string', enum: ['label', 'uri', 'type', 'creationDate', 'updateDate'] },
+      accessType: { type: 'string', enum: ['viewed', 'modified'] },
+      nameFilter: { type: 'string', maxLength: 200 },
+      descriptionFilter: { type: 'string', maxLength: 500 }
+    },
+    additionalProperties: false
+  },
+
+  domainUpdate: {
+    type: 'object',
+    required: ['domainUri'],
+    properties: {
+      domainUri: { 
+        type: 'string', 
+        pattern: '^/[a-zA-Z0-9_/\\-\\.]+$',
+        minLength: 2,
+        maxLength: 500
+      },
+      label: { type: 'string', minLength: 1, maxLength: 200 },
+      description: { type: 'string', maxLength: 1000 },
+      metadata: { type: 'object' },
+      properties: { type: 'object' },
+      security: { type: 'object' }
+    },
+    additionalProperties: false
+  },
+
+  domainValidate: {
+    type: 'object',
+    required: ['domainUri'],
+    properties: {
+      domainUri: { 
+        type: 'string', 
+        pattern: '^/[a-zA-Z0-9_/\\-\\.]+$',
+        minLength: 2,
+        maxLength: 500
+      },
+      checkDependencies: { type: 'boolean' },
+      checkIntegrity: { type: 'boolean' },
+      checkPermissions: { type: 'boolean' }
+    },
+    additionalProperties: false
+  },
+
+  schemaGet: {
+    type: 'object',
+    required: ['domainUri'],
+    properties: {
+      domainUri: { 
+        type: 'string', 
+        pattern: '^/[a-zA-Z0-9_/\\-\\.]+$',
+        minLength: 2,
+        maxLength: 500
+      },
+      includeFields: { type: 'boolean' },
+      includeJoins: { type: 'boolean' },
+      includeCalculatedFields: { type: 'boolean' }
+    },
+    additionalProperties: false
+  },
+
+  bundleUpload: {
+    type: 'object',
+    required: ['bundleName', 'bundleType', 'bundleContent'],
+    properties: {
+      bundleName: { type: 'string', minLength: 1, maxLength: 200 },
+      bundleType: { 
+        type: 'string', 
+        enum: ['domainBundle', 'schemaBundle', 'metadataBundle'] 
+      },
+      bundleContent: { type: 'string', minLength: 1 },
+      targetFolder: { 
+        type: 'string', 
+        pattern: '^/[a-zA-Z0-9_/\\-\\.]*$',
+        maxLength: 500
+      },
+      overwrite: { type: 'boolean' },
+      skipDependencyCheck: { type: 'boolean' }
+    },
+    additionalProperties: false
+  },
+
+  bundleManage: {
+    type: 'object',
+    required: ['operation', 'bundleUri'],
+    properties: {
+      operation: { type: 'string', enum: ['export', 'delete', 'validate'] },
+      bundleUri: { 
+        type: 'string', 
+        pattern: '^/[a-zA-Z0-9_/\\-\\.]+$',
+        minLength: 2,
+        maxLength: 500
+      },
+      exportType: { type: 'string', enum: ['everything', 'repository', 'roles', 'users'] },
+      includeAccessEvents: { type: 'boolean' },
+      includeAuditEvents: { type: 'boolean' },
+      includeMonitoringEvents: { type: 'boolean' }
+    },
+    additionalProperties: false
+  },
+
+  // Permission management schemas
+  permissionGet: {
+    type: 'object',
+    required: ['resourceUri'],
+    properties: {
+      resourceUri: { 
+        type: 'string', 
+        pattern: '^/[a-zA-Z0-9_/\\-\\.]+$',
+        minLength: 2,
+        maxLength: 500
+      },
+      includeInherited: { type: 'boolean' },
+      resolveAll: { type: 'boolean' }
+    },
+    additionalProperties: false
+  },
+
+  permissionSet: {
+    type: 'object',
+    required: ['resourceUri', 'permissions'],
+    properties: {
+      resourceUri: { 
+        type: 'string', 
+        pattern: '^/[a-zA-Z0-9_/\\-\\.]+$',
+        minLength: 2,
+        maxLength: 500
+      },
+      permissions: {
+        type: 'array',
+        minItems: 1,
+        items: {
+          type: 'object',
+          required: ['recipient', 'mask'],
+          properties: {
+            recipient: { type: 'string', minLength: 1, maxLength: 100 },
+            mask: { type: 'number', minimum: 0, maximum: 31 }
+          },
+          additionalProperties: false
+        }
+      },
+      replaceAll: { type: 'boolean' }
+    },
+    additionalProperties: false
+  },
+
+  // Role management schemas
+  roleCreate: {
+    type: 'object',
+    required: ['roleName'],
+    properties: {
+      roleName: { 
+        type: 'string', 
+        pattern: '^[a-zA-Z0-9_\\-\\.]+$',
+        minLength: 1,
+        maxLength: 100
+      },
+      description: { type: 'string', maxLength: 1000 },
+      externallyDefined: { type: 'boolean' }
+    },
+    additionalProperties: false
+  },
+
+  roleList: {
+    type: 'object',
+    properties: {
+      limit: { type: 'number', minimum: 1, maximum: 1000 },
+      offset: { type: 'number', minimum: 0 },
+      searchQuery: { type: 'string', maxLength: 200 }
+    },
+    additionalProperties: false
+  }
+};
+
+/**
+ * Simple JSON Schema validator implementation
+ */
+class SchemaValidator {
+  /**
+   * Validates data against a JSON schema
+   */
+  static validate(data, schema, fieldPath = '') {
+    const errors = [];
+    
+    if (schema.type) {
+      const typeError = this.validateType(data, schema.type, fieldPath);
+      if (typeError) errors.push(typeError);
+    }
+
+    if (schema.required && typeof data === 'object' && data !== null) {
+      for (const requiredField of schema.required) {
+        if (!(requiredField in data) || data[requiredField] === undefined || data[requiredField] === null) {
+          errors.push(new FieldValidationError(
+            `${fieldPath}${requiredField}`,
+            undefined,
+            'required',
+            `Field '${requiredField}' is required`
+          ));
+        }
+      }
+    }
+
+    if (schema.properties && typeof data === 'object' && data !== null) {
+      for (const [key, value] of Object.entries(data)) {
+        const propertySchema = schema.properties[key];
+        if (propertySchema) {
+          const propertyErrors = this.validate(value, propertySchema, `${fieldPath}${key}.`);
+          errors.push(...propertyErrors);
+        } else if (schema.additionalProperties === false) {
+          errors.push(new FieldValidationError(
+            `${fieldPath}${key}`,
+            value,
+            'additionalProperties',
+            `Additional property '${key}' is not allowed`
+          ));
+        }
+      }
+    }
+
+    if (schema.enum && !schema.enum.includes(data)) {
+      errors.push(new FieldValidationError(
+        fieldPath.slice(0, -1),
+        data,
+        'enum',
+        `Value must be one of: ${schema.enum.join(', ')}`
+      ));
+    }
+
+    if (schema.pattern && typeof data === 'string' && !new RegExp(schema.pattern).test(data)) {
+      errors.push(new FieldValidationError(
+        fieldPath.slice(0, -1),
+        data,
+        'pattern',
+        `Value does not match required pattern: ${schema.pattern}`
+      ));
+    }
+
+    if (schema.minLength && typeof data === 'string' && data.length < schema.minLength) {
+      errors.push(new FieldValidationError(
+        fieldPath.slice(0, -1),
+        data,
+        'minLength',
+        `Value must be at least ${schema.minLength} characters long`
+      ));
+    }
+
+    if (schema.maxLength && typeof data === 'string' && data.length > schema.maxLength) {
+      errors.push(new FieldValidationError(
+        fieldPath.slice(0, -1),
+        data,
+        'maxLength',
+        `Value must be at most ${schema.maxLength} characters long`
+      ));
+    }
+
+    if (schema.minimum && typeof data === 'number' && data < schema.minimum) {
+      errors.push(new FieldValidationError(
+        fieldPath.slice(0, -1),
+        data,
+        'minimum',
+        `Value must be at least ${schema.minimum}`
+      ));
+    }
+
+    if (schema.maximum && typeof data === 'number' && data > schema.maximum) {
+      errors.push(new FieldValidationError(
+        fieldPath.slice(0, -1),
+        data,
+        'maximum',
+        `Value must be at most ${schema.maximum}`
+      ));
+    }
+
+    if (schema.format && typeof data === 'string') {
+      const formatError = this.validateFormat(data, schema.format, fieldPath.slice(0, -1));
+      if (formatError) errors.push(formatError);
+    }
+
+    if (schema.items && Array.isArray(data)) {
+      data.forEach((item, index) => {
+        const itemErrors = this.validate(item, schema.items, `${fieldPath}[${index}].`);
+        errors.push(...itemErrors);
+      });
+    }
+
+    if (schema.minItems && Array.isArray(data) && data.length < schema.minItems) {
+      errors.push(new FieldValidationError(
+        fieldPath.slice(0, -1),
+        data,
+        'minItems',
+        `Array must have at least ${schema.minItems} items`
+      ));
+    }
+
+    return errors;
+  }
+
+  static validateType(data, expectedType, fieldPath) {
+    const actualType = Array.isArray(data) ? 'array' : typeof data;
+    
+    if (expectedType === 'array' && !Array.isArray(data)) {
+      return new FieldValidationError(
+        fieldPath.slice(0, -1),
+        data,
+        'type',
+        `Expected array, got ${actualType}`
+      );
+    }
+    
+    if (expectedType !== 'array' && actualType !== expectedType) {
+      return new FieldValidationError(
+        fieldPath.slice(0, -1),
+        data,
+        'type',
+        `Expected ${expectedType}, got ${actualType}`
+      );
+    }
+    
+    return null;
+  }
+
+  static validateFormat(data, format, fieldPath) {
+    switch (format) {
+      case 'email':
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(data)) {
+          return new FieldValidationError(
+            fieldPath,
+            data,
+            'format',
+            'Invalid email format'
+          );
+        }
+        break;
+      case 'uri':
+        try {
+          new URL(data);
+        } catch {
+          return new FieldValidationError(
+            fieldPath,
+            data,
+            'format',
+            'Invalid URI format'
+          );
+        }
+        break;
+      case 'date-time':
+        if (isNaN(Date.parse(data))) {
+          return new FieldValidationError(
+            fieldPath,
+            data,
+            'format',
+            'Invalid date-time format'
+          );
+        }
+        break;
+    }
+    return null;
+  }
+}
+
+/**
+ * Main validator class with convenience methods
+ */
+class Validator {
+  /**
+   * Validates authentication request
+   */
+  static validateAuthentication(data) {
+    return this.validateWithSchema(data, schemas.authentication, 'authentication');
+  }
+
+  /**
+   * Validates connection test request
+   */
+  static validateConnectionTest(data) {
+    return this.validateWithSchema(data, schemas.connectionTest, 'connectionTest');
+  }
+
+  /**
+   * Validates resource upload request
+   */
+  static validateResourceUpload(data) {
+    return this.validateWithSchema(data, schemas.resourceUpload, 'resourceUpload');
+  }
+
+  /**
+   * Validates resource list request
+   */
+  static validateResourceList(data) {
+    return this.validateWithSchema(data, schemas.resourceList, 'resourceList');
+  }
+
+  /**
+   * Validates resource get request
+   */
+  static validateResourceGet(data) {
+    return this.validateWithSchema(data, schemas.resourceGet, 'resourceGet');
+  }
+
+  /**
+   * Validates resource update request
+   */
+  static validateResourceUpdate(data) {
+    return this.validateWithSchema(data, schemas.resourceUpdate, 'resourceUpdate');
+  }
+
+  /**
+   * Validates resource delete request
+   */
+  static validateResourceDelete(data) {
+    return this.validateWithSchema(data, schemas.resourceDelete, 'resourceDelete');
+  }
+
+  /**
+   * Validates report execution request
+   */
+  static validateReportExecution(data) {
+    return this.validateWithSchema(data, schemas.reportExecution, 'reportExecution');
+  }
+
+  /**
+   * Validates execution status request
+   */
+  static validateExecutionStatus(data) {
+    return this.validateWithSchema(data, schemas.executionStatus, 'executionStatus');
+  }
+
+  /**
+   * Validates execution result request
+   */
+  static validateExecutionResult(data) {
+    return this.validateWithSchema(data, schemas.executionResult, 'executionResult');
+  }
+
+  /**
+   * Validates execution cancel request
+   */
+  static validateExecutionCancel(data) {
+    return this.validateWithSchema(data, schemas.executionCancel, 'executionCancel');
+  }
+
+  /**
+   * Validates input controls request
+   */
+  static validateInputControls(data) {
+    return this.validateWithSchema(data, schemas.inputControls, 'inputControls');
+  }
+
+  /**
+   * Validates input control values request
+   */
+  static validateInputControlValues(data) {
+    return this.validateWithSchema(data, schemas.inputControlValues, 'inputControlValues');
+  }
+
+  /**
+   * Validates input control validation request
+   */
+  static validateInputControlValidation(data) {
+    return this.validateWithSchema(data, schemas.inputControlValidation, 'inputControlValidation');
+  }
+
+  /**
+   * Validates job creation request
+   */
+  static validateJobCreation(data) {
+    return this.validateWithSchema(data, schemas.jobCreation, 'jobCreation');
+  }
+
+  /**
+   * Validates job list request
+   */
+  static validateJobList(data) {
+    return this.validateWithSchema(data, schemas.jobList, 'jobList');
+  }
+
+  /**
+   * Validates job update request
+   */
+  static validateJobUpdate(data) {
+    return this.validateWithSchema(data, schemas.jobUpdate, 'jobUpdate');
+  }
+
+  /**
+   * Validates job delete request
+   */
+  static validateJobDelete(data) {
+    return this.validateWithSchema(data, schemas.jobDelete, 'jobDelete');
+  }
+
+  /**
+   * Validates job execute request
+   */
+  static validateJobExecute(data) {
+    return this.validateWithSchema(data, schemas.jobExecute, 'jobExecute');
+  }
+
+  /**
+   * Validates user creation request
+   */
+  static validateUserCreate(data) {
+    return this.validateWithSchema(data, schemas.userCreate, 'userCreate');
+  }
+
+  /**
+   * Validates user list request
+   */
+  static validateUserList(data) {
+    return this.validateWithSchema(data, schemas.userList, 'userList');
+  }
+
+  /**
+   * Validates user update request
+   */
+  static validateUserUpdate(data) {
+    return this.validateWithSchema(data, schemas.userUpdate, 'userUpdate');
+  }
+
+  /**
+   * Generic validation method using schema
+   */
+  static validateWithSchema(data, schema, operationType) {
+    if (!data || typeof data !== 'object') {
+      throw ErrorMapper.createValidationError([
+        new FieldValidationError('root', data, 'type', 'Request data must be an object')
+      ]);
+    }
+
+    const errors = SchemaValidator.validate(data, schema);
+    
+    if (errors.length > 0) {
+      throw ErrorMapper.createValidationError(errors);
+    }
+
+    return true;
+  }
+
+  /**
+   * Validates JRXML content structure
+   */
+  static validateJRXMLContent(jrxmlContent) {
+    if (!jrxmlContent || typeof jrxmlContent !== 'string') {
+      throw new ValidationError('JRXML content must be a non-empty string');
+    }
+
+    // Basic XML structure validation
+    if (!jrxmlContent.trim().startsWith('<?xml')) {
+      throw new ValidationError('JRXML content must be valid XML starting with XML declaration');
+    }
+
+    if (!jrxmlContent.includes('<jasperReport')) {
+      throw new ValidationError('JRXML content must contain jasperReport root element');
+    }
+
+    return true;
+  }
+
+  /**
+   * Validates cron expression format
+   */
+  static validateCronExpression(cronExpression) {
+    if (!cronExpression || typeof cronExpression !== 'string') {
+      throw new ValidationError('Cron expression must be a non-empty string');
+    }
+
+    const parts = cronExpression.trim().split(/\s+/);
+    if (parts.length < 5 || parts.length > 7) {
+      throw new ValidationError('Cron expression must have 5-7 parts (seconds minutes hours day month weekday [year])');
+    }
+
+    return true;
+  }
+
+  /**
+   * Validates domain get request
+   */
+  static validateDomainGet(data) {
+    return this.validateWithSchema(data, schemas.domainGet, 'domainGet');
+  }
+
+  /**
+   * Validates domain list request
+   */
+  static validateDomainList(data) {
+    return this.validateWithSchema(data, schemas.domainList, 'domainList');
+  }
+
+  /**
+   * Validates domain update request
+   */
+  static validateDomainUpdate(data) {
+    return this.validateWithSchema(data, schemas.domainUpdate, 'domainUpdate');
+  }
+
+  /**
+   * Validates domain validate request
+   */
+  static validateDomainValidate(data) {
+    return this.validateWithSchema(data, schemas.domainValidate, 'domainValidate');
+  }
+
+  /**
+   * Validates schema get request
+   */
+  static validateSchemaGet(data) {
+    return this.validateWithSchema(data, schemas.schemaGet, 'schemaGet');
+  }
+
+  /**
+   * Validates bundle upload request
+   */
+  static validateBundleUpload(data) {
+    return this.validateWithSchema(data, schemas.bundleUpload, 'bundleUpload');
+  }
+
+  /**
+   * Validates bundle manage request
+   */
+  static validateBundleManage(data) {
+    return this.validateWithSchema(data, schemas.bundleManage, 'bundleManage');
+  }
+
+  /**
+   * Validates permission get request
+   */
+  static validatePermissionGet(data) {
+    return this.validateWithSchema(data, schemas.permissionGet, 'permissionGet');
+  }
+
+  /**
+   * Validates permission set request
+   */
+  static validatePermissionSet(data) {
+    return this.validateWithSchema(data, schemas.permissionSet, 'permissionSet');
+  }
+
+  /**
+   * Validates role create request
+   */
+  static validateRoleCreate(data) {
+    return this.validateWithSchema(data, schemas.roleCreate, 'roleCreate');
+    return this.validateWithSchema(data, schemas.bundleManage, 'bundleManage');
+  }
+
+  /**
+   * Validates permission get request
+   */
+  static validatePermissionGet(data) {
+    return this.validateWithSchema(data, schemas.permissionGet, 'permissionGet');
+  }
+
+  /**
+   * Validates permission set request
+   */
+  static validatePermissionSet(data) {
+    return this.validateWithSchema(data, schemas.permissionSet, 'permissionSet');
+  }
+
+  /**
+   * Validates role create request
+   */
+  static validateRoleCreate(data) {
+    return this.validateWithSchema(data, schemas.roleCreate, 'roleCreate');
+  }
+
+  /**
+   * Validates role list request
+   */
+  static validateRoleList(data) {
+    return this.validateWithSchema(data, schemas.roleList, 'roleList');
+  }
+
+  /**
+   * Validates resource URI format
+   */
+  static validateResourceURI(uri) {
+    if (!uri || typeof uri !== 'string') {
+      throw new ValidationError('Resource URI must be a non-empty string');
+    }
+
+    if (!uri.startsWith('/')) {
+      throw new ValidationError('Resource URI must start with /');
+    }
+
+    if (uri.includes('//') || uri.includes('..')) {
+      throw new ValidationError('Resource URI cannot contain // or .. sequences');
+    }
+
+    return true;
+  }
+}
+
+export {
+  Validator,
+  SchemaValidator,
+  schemas
+};

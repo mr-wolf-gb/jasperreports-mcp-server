@@ -1,0 +1,10 @@
+{
+  "label": "Oracle Test Database",
+  "description": "Oracle datasource configuration for testing",
+  "driver": "oracle.jdbc.OracleDriver",
+  "connectionUrl": "jdbc:oracle:thin:@localhost:1521:XE",
+  "connectionUser": "testuser",
+  "connectionPassword": "testpass",
+  "timezone": "",
+  "validationQuery": "SELECT 1 FROM DUAL"
+}

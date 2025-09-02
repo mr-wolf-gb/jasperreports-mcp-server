@@ -1,0 +1,100 @@
+{
+  "name": "jasperreports-mcp-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol server for JasperReports Server REST API v2",
+  "main": "src/index.js",
+  "bin": {
+    "jasperreports-mcp-server": "src/index.js",
+    "jasperreports-test-server": "src/testServer.js"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./test-server": {
+      "import": "./src/testServer.js",
+      "require": "./dist/testServer.cjs"
+    }
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
+    "test:final": "node scripts/run-final-validation.js",
+    "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js test/integration/",
+    "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js test/unit/",
+    "test:validation": "node --experimental-vm-modules node_modules/jest/bin/jest.js test/integration/final.validation.test.js",
+    "validate:implementation": "node scripts/validate-final-implementation.js",
+    "lint": "eslint src/ test/",
+    "lint:fix": "eslint src/ test/ --fix",
+    "format": "prettier --write src/ test/ *.json *.md",
+    "format:check": "prettier --check src/ test/ *.json *.md",
+    "test-server": "node src/testServer.js",
+    "build": "npm run build:esm && npm run build:cjs",
+    "build:esm": "node -e \"require('fs').cpSync('src', 'dist-esm', {recursive: true})\"",
+    "build:cjs": "babel src --out-dir dist --plugins @babel/plugin-transform-modules-commonjs",
+    "prepublishOnly": "npm run build && npm run test && npm run lint",
+    "postinstall": "node scripts/postinstall.js",
+    "docker:build": "docker build -t jasperreports-mcp-server .",
+    "docker:run": "docker run -p 3000:3000 --env-file .env jasperreports-mcp-server",
+    "docker:dev": "docker-compose up --build",
+    "validate-config": "node scripts/validate-config.js",
+    "validate-env": "node scripts/validate-env.js",
+    "deploy": "bash scripts/deploy.sh"
+  },
+  "keywords": [
+    "jasperreports",
+    "mcp",
+    "model-context-protocol",
+    "reports",
+    "api"
+  ],
+  "author": "Mr-Wolf-GB <gaiththewolf@gmail.com>",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "axios": "^1.6.0",
+    "dotenv": "^17.2.1",
+    "express": "^4.18.0",
+    "form-data": "^4.0.4",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.23.0",
+    "@babel/core": "^7.23.0",
+    "@babel/plugin-transform-modules-commonjs": "^7.23.0",
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "jest": "^29.7.0",
+    "multer": "^2.0.2",
+    "prettier": "^3.0.0",
+    "supertest": "^6.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "files": [
+    "src/",
+    "dist/",
+    "docs/",
+    "scripts/",
+    "README.md",
+    "LICENSE",
+    "package.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mr-wolf-gb/jasperreports-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mr-wolf-gb/jasperreports-mcp-server/issues"
+  },
+  "homepage": "https://github.com/mr-wolf-gb/jasperreports-mcp-server#readme"
+}

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<folder exportedWithPermissions="true">
+    <parent>/</parent>
+    <name>reports</name>
+    <label>Reports</label>
+    <description>Reports</description>
+    <creationDate>2024-10-29T07:32:56.000+01:00</creationDate>
+    <updateDate>2023-04-26T11:24:17.000+01:00</updateDate>
+    <permission>
+        <permissionMask>2</permissionMask>
+        <recipient recipientType="role">ROLE_ANONYMOUS</recipient>
+    </permission>
+    <permission>
+        <permissionMask>30</permissionMask>
+        <recipient recipientType="role">ROLE_USER</recipient>
+    </permission>
+    <permission>
+        <permissionMask>2</permissionMask>
+        <recipient recipientType="user">anonymousUser</recipient>
+    </permission>
+</folder>

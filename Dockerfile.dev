@@ -1,0 +1,33 @@
+# Development Dockerfile with hot reload
+FROM node:18-alpine AS development
+
+# Install development tools
+RUN apk add --no-cache dumb-init git
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev dependencies)
+RUN npm ci && npm cache clean --force
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S jasper -u 1001
+
+# Change ownership of the app directory
+RUN chown -R jasper:nodejs /app
+
+# Switch to non-root user
+USER jasper
+
+# Expose port
+EXPOSE 3000
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Development command with hot reload
+CMD ["npm", "run", "dev"]

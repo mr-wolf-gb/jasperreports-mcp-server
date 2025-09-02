@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "jasperreports-server": {
+      "command": "node",
+      "args": ["/path/to/jasperreports-mcp-server/src/index.js"],
+      "env": {
+        "JASPER_URL": "http://localhost:8080/jasperserver",
+        "JASPER_AUTH_TYPE": "basic",
+        "JASPER_USERNAME": "jasperadmin",
+        "JASPER_PASSWORD": "jasperadmin",
+        "JASPER_ORGANIZATION": "",
+        "JASPER_TIMEOUT": "30000",
+        "JASPER_SSL_VERIFY": "false",
+        "JASPER_DEBUG_MODE": "true",
+        "TEST_SERVER_ENABLED": "true",
+        "TEST_SERVER_PORT": "3000",
+        "NODE_ENV": "development",
+        "LOG_LEVEL": "debug"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "jasper_authenticate",
+        "jasper_test_connection",
+        "jasper_list_resources",
+        "jasper_get_resource",
+        "jasper_upload_resource",
+        "jasper_run_report_sync",
+        "jasper_get_input_controls"
+      ]
+    }
+  }
+}

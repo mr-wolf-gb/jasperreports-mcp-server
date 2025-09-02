@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<reportUnit exportedWithPermissions="true">
+    <folder>/reports/GRH</folder>
+    <name>recompense</name>
+    <version>0</version>
+    <label>recompense</label>
+    <description></description>
+    <creationDate>2024-10-29T10:18:01.000+01:00</creationDate>
+    <updateDate>2021-02-23T13:56:21.000+01:00</updateDate>
+    <mainReport>
+        <localResource
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            exportedWithPermissions="false" dataFile="main_jrxml.data" xsi:type="fileResource">
+            <folder>/reports/GRH/recompense_files</folder>
+            <name>main_jrxml</name>
+            <version>0</version>
+            <label>Main jrxml</label>
+            <creationDate>2024-10-29T10:18:01.000+01:00</creationDate>
+            <updateDate>2021-02-23T09:53:56.000+01:00</updateDate>
+            <fileType>jrxml</fileType>
+        </localResource>
+    </mainReport>
+    <dataSource>
+        <uri>/datasources/Oracle_DataSource</uri>
+    </dataSource>
+    <inputControl>
+        <localResource
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            exportedWithPermissions="false" xsi:type="inputControl">
+            <folder>/reports/GRH/recompense_files</folder>
+            <name>cnrps</name>
+            <version>0</version>
+            <label>المعرف الوحيد</label>
+            <description></description>
+            <creationDate>2024-10-29T10:18:01.000+01:00</creationDate>
+            <updateDate>2021-02-23T09:53:57.000+01:00</updateDate>
+            <type>2</type>
+            <mandatory>false</mandatory>
+            <readOnly>false</readOnly>
+            <visible>true</visible>
+            <dataType>
+                <localResource exportedWithPermissions="false" xsi:type="dataType">
+                    <folder>/reports/GRH/recompense_files/cnrps_files</folder>
+                    <name>myDatatype</name>
+                    <version>0</version>
+                    <label>myDatatype</label>
+                    <description></description>
+                    <creationDate>2024-10-29T10:18:01.000+01:00</creationDate>
+                    <updateDate>2021-02-23T09:53:57.000+01:00</updateDate>
+                    <type>1</type>
+                    <regularExpr></regularExpr>
+                    <strictMin>false</strictMin>
+                    <strictMax>false</strictMax>
+                </localResource>
+            </dataType>
+        </localResource>
+    </inputControl>
+    <resource>
+        <localResource
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            exportedWithPermissions="false" dataFile="onpclogo.png.data" xsi:type="fileResource">
+            <folder>/reports/GRH/recompense_files</folder>
+            <name>onpclogo.png</name>
+            <version>0</version>
+            <label>onpclogo.png</label>
+            <creationDate>2024-10-29T10:18:01.000+01:00</creationDate>
+            <updateDate>2021-02-23T09:53:49.000+01:00</updateDate>
+            <fileType>img</fileType>
+        </localResource>
+    </resource>
+    <resource>
+        <localResource
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            exportedWithPermissions="false" xsi:type="fileResource">
+            <folder>/reports/GRH/recompense_files</folder>
+            <name>ArialAr</name>
+            <version>0</version>
+            <label>ArialAr</label>
+            <description></description>
+            <creationDate>2024-10-29T10:18:01.000+01:00</creationDate>
+            <updateDate>2021-02-23T09:54:21.000+01:00</updateDate>
+            <referenceUri>/Fonts/ArialAr.jar</referenceUri>
+        </localResource>
+    </resource>
+    <inputControlRenderingView></inputControlRenderingView>
+    <alwaysPromptControls>false</alwaysPromptControls>
+    <controlsLayout>1</controlsLayout>
+</reportUnit>

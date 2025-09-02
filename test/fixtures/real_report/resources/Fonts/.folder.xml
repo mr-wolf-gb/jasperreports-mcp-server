@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<folder exportedWithPermissions="true">
+    <parent>/</parent>
+    <name>Fonts</name>
+    <label>Fonts</label>
+    <description>all fonts used as resources</description>
+    <creationDate>2024-10-29T10:17:53.000+01:00</creationDate>
+    <updateDate>2021-01-06T11:12:56.000+01:00</updateDate>
+    <permission>
+        <permissionMask>2</permissionMask>
+        <recipient recipientType="role">ROLE_ANONYMOUS</recipient>
+    </permission>
+</folder>

@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "jasperreports-server": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--env-file",
+        ".env",
+        "jasperreports-mcp-server"
+      ],
+      "env": {
+        "JASPER_URL": "http://host.docker.internal:8080/jasperserver",
+        "JASPER_AUTH_TYPE": "basic",
+        "JASPER_USERNAME": "jasperadmin",
+        "JASPER_PASSWORD": "jasperadmin",
+        "JASPER_TIMEOUT": "60000",
+        "JASPER_SSL_VERIFY": "false",
+        "JASPER_DEBUG_MODE": "false",
+        "TEST_SERVER_ENABLED": "false",
+        "NODE_ENV": "production",
+        "LOG_LEVEL": "info"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "jasper_authenticate",
+        "jasper_test_connection"
+      ]
+    }
+  }
+}

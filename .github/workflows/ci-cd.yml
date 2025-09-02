@@ -170,8 +170,8 @@ jobs:
     - name: Build project
       run: npm run build
     
-    - name: Publish to NPM
-      run: npm publish --access public
+    - name: Publish package
+      run: npm publish --access public --otp=${{ secrets.NPM_OTP }}
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

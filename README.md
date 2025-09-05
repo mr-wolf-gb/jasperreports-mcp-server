@@ -513,7 +513,6 @@ npm run dev
 
 - 🐛 **Issues**: [GitHub Issues](https://github.com/mr-wolf-gb/jasperreports-mcp-server/issues)
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/mr-wolf-gb/jasperreports-mcp-server/discussions)
-- 📧 **Email**: gaiththewolf@gmail.com
 - 📚 **Documentation**: [Full Documentation](https://github.com/mr-wolf-gb/jasperreports-mcp-server#readme)
 
 ## Roadmap

@@ -1,15 +1,15 @@
 # JasperReports MCP Server
 
 [![npm version](https://badge.fury.io/js/jasperreports-mcp-server.svg)](https://badge.fury.io/js/jasperreports-mcp-server)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](https://opensource.org/licenses/GPL-3.0)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-blue.svg)](https://modelcontextprotocol.io/)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](#)
-[![Coverage](https://img.shields.io/badge/coverage-90%25-brightgreen.svg)](#)
+[![CI/CD Pipeline](https://github.com/mr-wolf-gb/jasperreports-mcp-server/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/mr-wolf-gb/jasperreports-mcp-server/actions/workflows/ci-cd.yml)
+[![codecov](https://codecov.io/gh/mr-wolf-gb/jasperreports-mcp-server/branch/main/graph/badge.svg)](https://codecov.io/gh/mr-wolf-gb/jasperreports-mcp-server)
 
 A comprehensive Node.js Model Context Protocol (MCP) server for JasperReports Server REST API v2. This server enables AI assistants and developers to perform all major JasperReports operations including authentication, resource management, report execution, job scheduling, and administrative tasks through standardized MCP tools.
 
-Perfect for integrating JasperReports functionality into AI-powered IDEs like **Cursor**, **Kiro**, **Windsurf**, and any other MCP-compatible development environment.
+Perfect for integrating JasperReports functionality into AI-powered IDEs like **Cursor**, **Kiro**, **Windsurf**, **Claude Desktop**, and any other MCP-compatible development environment.
 
 ## Features
 
@@ -105,6 +105,29 @@ npm install -g jasperreports-mcp-server
 }
 ```
 
+### Claude Desktop
+
+1. Install the server:
+```bash
+npm install -g jasperreports-mcp-server
+```
+
+2. Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+```json
+{
+  "mcpServers": {
+    "jasperreports-server": {
+      "command": "jasperreports-mcp-server",
+      "env": {
+        "JASPER_URL": "http://localhost:8080/jasperserver",
+        "JASPER_USERNAME": "jasperadmin",
+        "JASPER_PASSWORD": "jasperadmin"
+      }
+    }
+  }
+}
+```
+
 ### Other MCP-Compatible IDEs
 
 For any IDE that supports the Model Context Protocol:
@@ -136,7 +159,7 @@ npm install -g jasperreports-mcp-server
 
 1. Clone and install:
 ```bash
-git clone https://github.com/user/jasperreports-mcp-server.git
+git clone https://github.com/mr-wolf-gb/jasperreports-mcp-server.git
 cd jasperreports-mcp-server
 npm install
 ```
@@ -454,7 +477,7 @@ await jasper_component_health({ component: "authentication" });
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+GPL-3.0-or-later License - see [LICENSE](LICENSE) file for details.
 
 ## Contributing
 
@@ -474,7 +497,7 @@ We welcome contributions! Please follow these steps:
 
 ```bash
 # Clone and install
-git clone https://github.com/user/jasperreports-mcp-server.git
+git clone https://github.com/mr-wolf-gb/jasperreports-mcp-server.git
 cd jasperreports-mcp-server
 npm install
 
@@ -488,10 +511,10 @@ npm run dev
 
 ## Support & Community
 
-- 🐛 **Issues**: [GitHub Issues](https://github.com/user/jasperreports-mcp-server/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/user/jasperreports-mcp-server/discussions)
-- 📧 **Email**: support@jasperreports-mcp-server.com
-- 📚 **Documentation**: [Full Documentation](https://github.com/user/jasperreports-mcp-server/wiki)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/mr-wolf-gb/jasperreports-mcp-server/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/mr-wolf-gb/jasperreports-mcp-server/discussions)
+- 📧 **Email**: gaiththewolf@gmail.com
+- 📚 **Documentation**: [Full Documentation](https://github.com/mr-wolf-gb/jasperreports-mcp-server#readme)
 
 ## Roadmap
 
@@ -504,4 +527,4 @@ npm run dev
 
 ---
 
-**Made with ❤️ for the JasperReports and MCP community**
+**Made with ❤️ by [Mr-Wolf-GB](https://github.com/mr-wolf-gb) for the JasperReports and MCP community**
